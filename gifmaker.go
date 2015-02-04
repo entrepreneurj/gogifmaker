@@ -13,17 +13,18 @@ import (
 	"log"	
 )
 
-// Global var holding redis connection
+// Converts the opened image to the required form of *Image.Paletted by
+// drawing into a new *Image.Paletted instance
+func convertImage(img image.Image) *image.Paletted {
 
-//var (
-//	pool *redis.Pool // Redis connection pool
-//)
-
-
+	new_img := image.NewPaletted(img.Bounds(), palette.Plan9)
+	draw.Draw(new_img, img.Bounds(), img, image.ZP, draw.Src)
+	return new_img
+}
 
 
 func main() {
-	fmt.Printf("Making a %s\n", "gif")
+	fmt.Printf("Making a gif\n")
 	dirname := "." + string(filepath.Separator)
 
 	d, err := os.Open(dirname)
@@ -41,20 +42,22 @@ func main() {
 
 	fmt.Println("Reading " + dirname)
 	
+	// Setting up the empty GIF struct
 	var my_gif gif.GIF
 	my_gif.LoopCount =1
 
-	var opt gif.Options
-	opt.NumColors = 256
-
+	// Iterating through each file and adding it to the GIF if it is 
+	// an accepted image file
 	for _, file := range files {
 		if file.Mode().IsRegular() {
 			if filepath.Ext(file.Name()) == ".png" || filepath.Ext(file.Name()) == ".jpeg" || filepath.Ext(file.Name()) == ".jpg" {
 				fmt.Println(file.Name(), file.Size(), "bytes")
 				reader, err := os.Open(file.Name())
-				m, _, err := image.Decode(reader)
-				new_img := image.NewPaletted(m.Bounds(), palette.Plan9)
-				draw.Draw(new_img, m.Bounds(), m, image.ZP, draw.Src)
+				fmt.Println("decoding image")
+				in_image, _, err := image.Decode(reader)
+				fmt.Println("converting image")
+				new_img := convertImage(in_image)
+				fmt.Println("Adding image to gif")
 				my_gif.Image = append(my_gif.Image, new_img)
 				my_gif.Delay = append(my_gif.Delay, 1)
 				if err != nil {

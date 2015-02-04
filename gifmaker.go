@@ -41,7 +41,9 @@ func main() {
 
 	for _, file := range files {
 		if file.Mode().IsRegular() {
-			fmt.Println(file.Name(), file.Size(), "bytes")
+			if filepath.Ext(file.Name()) == ".png" || filepath.Ext(file.Name()) == ".jpeg" || filepath.Ext(file.Name()) == ".jpg" {
+				fmt.Println(file.Name(), file.Size(), "bytes")
+			}
 		}
 
 	}
